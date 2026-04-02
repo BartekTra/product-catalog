@@ -3,6 +3,7 @@ package com.bartektra.product_catalog.service;
 import com.bartektra.product_catalog.dto.request.ProductRequest;
 import com.bartektra.product_catalog.dto.response.ProducerResponse;
 import com.bartektra.product_catalog.dto.response.ProductResponse;
+import com.bartektra.product_catalog.exception.ResourceNotFoundException;
 import com.bartektra.product_catalog.model.Producer;
 import com.bartektra.product_catalog.model.Product;
 import com.bartektra.product_catalog.model.ProductAttribute;
@@ -34,9 +35,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Product not found with id: " + id
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         return toResponse(product);
     }
 
@@ -58,9 +57,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Product not found with id: " + id
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
 
         Producer producer = findProducerOrThrow(request.getProducerId());
 
@@ -78,17 +75,13 @@ public class ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Product not found with id: " + id
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         productRepository.delete(product);
     }
 
     private Producer findProducerOrThrow(Long producerId) {
         return producerRepository.findById(producerId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Producer not found with id: " + producerId
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Producer not found with id: " + producerId));
     }
 
     private void setAttributes(Product product, Map<String, String> attributeMap) {

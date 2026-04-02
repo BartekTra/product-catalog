@@ -2,6 +2,8 @@ package com.bartektra.product_catalog.service;
 
 import com.bartektra.product_catalog.dto.request.ProducerRequest;
 import com.bartektra.product_catalog.dto.response.ProducerResponse;
+import com.bartektra.product_catalog.exception.DuplicateResourceException;
+import com.bartektra.product_catalog.exception.ResourceNotFoundException;
 import com.bartektra.product_catalog.model.Producer;
 import com.bartektra.product_catalog.repository.ProducerRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +36,7 @@ public class ProducerService {
     @Transactional
     public ProducerResponse createProducer(ProducerRequest request) {
         if (producerRepository.existsByNameIgnoreCase(request.getName())) {
-            throw new IllegalArgumentException(
+            throw new DuplicateResourceException(
                     "Producer with name '" + request.getName() + "' already exists"
             );
         }
@@ -48,9 +50,7 @@ public class ProducerService {
 
         if (!producer.getName().equalsIgnoreCase(request.getName())
                 && producerRepository.existsByNameIgnoreCase(request.getName())) {
-            throw new IllegalArgumentException(
-                    "Producer with name '" + request.getName() + "' already exists"
-            );
+            throw new ResourceNotFoundException("Producer not found with id: " + id);
         }
 
         producer.setName(request.getName());
@@ -68,9 +68,7 @@ public class ProducerService {
 
     private Producer findProducerOrThrow(Long id) {
         return producerRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Producer not found with id: " + id
-                ));
+                .orElseThrow(() -> new ResourceNotFoundException("Producer not found with id: " + id));
     }
 
     private Producer toEntity(ProducerRequest request) {
