@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003" author="bartektra">
+        <createTable tableName="product_attributes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attribute_key" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attribute_value" type="VARCHAR(1000)"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="product_attributes"
+                baseColumnNames="product_id"
+                referencedTableName="products"
+                referencedColumnNames="id"
+                constraintName="fk_attributes_product"
+                onDelete="CASCADE"/>
+
+        <createIndex tableName="product_attributes" indexName="idx_product_attributes_product_id">
+            <column name="product_id"/>
+        </createIndex>
+
+        <addUniqueConstraint
+                tableName="product_attributes"
+                columnNames="product_id, attribute_key"
+                constraintName="uq_product_attribute_key"/>
+
+    </changeSet>
+
+</databaseChangeLog>
