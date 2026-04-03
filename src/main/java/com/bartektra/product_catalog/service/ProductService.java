@@ -1,5 +1,6 @@
 package com.bartektra.product_catalog.service;
 
+import com.bartektra.product_catalog.dto.request.ProductFilterRequest;
 import com.bartektra.product_catalog.dto.request.ProductRequest;
 import com.bartektra.product_catalog.dto.response.ProducerResponse;
 import com.bartektra.product_catalog.dto.response.ProductResponse;
@@ -9,8 +10,12 @@ import com.bartektra.product_catalog.model.Product;
 import com.bartektra.product_catalog.model.ProductAttribute;
 import com.bartektra.product_catalog.repository.ProducerRepository;
 import com.bartektra.product_catalog.repository.ProductRepository;
+import com.bartektra.product_catalog.specification.ProductSpecification;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,9 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProducerRepository producerRepository;
+
+    @PersistenceContext
+    final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
@@ -57,7 +65,9 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + id
+                ));
 
         Producer producer = findProducerOrThrow(request.getProducerId());
 
@@ -67,6 +77,8 @@ public class ProductService {
         product.setProducer(producer);
 
         product.getAttributes().clear();
+        entityManager.flush();
+
         setAttributes(product, request.getAttributes());
 
         return toResponse(productRepository.save(product));
@@ -77,6 +89,24 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         productRepository.delete(product);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> searchProducts(ProductFilterRequest filter) {
+        Specification<Product> spec = ProductSpecification.buildFilter(
+                filter.getName(),
+                filter.getProducerId(),
+                filter.getProducerName(),
+                filter.getMinPrice(),
+                filter.getMaxPrice(),
+                filter.getAttributeKey(),
+                filter.getAttributeValue()
+        );
+
+        return productRepository.findAll(spec)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     private Producer findProducerOrThrow(Long producerId) {

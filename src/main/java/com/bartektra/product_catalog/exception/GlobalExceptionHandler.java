@@ -16,9 +16,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
-            EntityNotFoundException ex) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(
@@ -62,6 +62,32 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex) {
+
+        String message;
+        String exMessage = ex.getRootCause() != null
+                ? ex.getRootCause().getMessage().toLowerCase()
+                : "";
+
+        if (exMessage.contains("referential integrity")
+                || exMessage.contains("foreign key")
+                || exMessage.contains("constraint \"fk")) {
+            message = "Cannot delete this resource because it has dependent records attached to it";
+        } else {
+            message = "A resource with the provided details already exists";
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        HttpStatus.CONFLICT.value(),
+                        message,
+                        LocalDateTime.now()
+                ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         return ResponseEntity
@@ -69,18 +95,6 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "An unexpected error occurred",
-                        LocalDateTime.now()
-                ));
-    }
-
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
-            DataIntegrityViolationException ex) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(
-                        HttpStatus.CONFLICT.value(),
-                        "A resource with the provided details already exists",
                         LocalDateTime.now()
                 ));
     }

@@ -1,5 +1,6 @@
 package com.bartektra.product_catalog.controller;
 
+import com.bartektra.product_catalog.dto.request.ProductFilterRequest;
 import com.bartektra.product_catalog.dto.request.ProductRequest;
 import com.bartektra.product_catalog.dto.response.ProductResponse;
 import com.bartektra.product_catalog.service.ProductService;
@@ -26,6 +27,12 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponse>> searchProducts(
+            @Valid @ModelAttribute ProductFilterRequest filter) {
+        return ResponseEntity.ok(productService.searchProducts(filter));
     }
 
     @PostMapping
