@@ -328,6 +328,26 @@ Validation errors include a field-level breakdown:
 
 ---
 
+## Testing
+
+The project includes a comprehensive suite of **Integration Tests** to ensure the API contracts, business logic, and database interactions work correctly together.
+
+### Integration Tests Approach
+- **Spring Boot Test & MockMvc:** Tests are written using `@SpringBootTest` combined with `@AutoConfigureMockMvc`. This allows testing the entire application context and HTTP web layer without the overhead of starting a real embedded web server.
+- **Data Isolation:** The test classes (e.g., `ProductControllerIntegrationTest`) are annotated with `@Transactional`. This ensures that any database modifications made during a test (like creating, updating, or deleting a product) are automatically rolled back when the test completes, maintaining a pristine state for the next test.
+- **H2 In-Memory Database:** Tests run against the H2 in-memory database, automatically applying the latest Liquibase migrations on startup.
+- **Test Coverage:** The integration tests extensively cover:
+  - Standard CRUD operations (`GET`, `POST`, `PUT`, `DELETE`).
+  - Input validation and proper error status codes (`400 Bad Request`, `404 Not Found`, etc.).
+  - Complex search scenarios and dynamic filtering using JPA Specifications.
+
+### Running the Tests
+
+To execute the test suite, run the following command in your terminal:
+
+```bash
+./mvnw test
+
 ## Project Structure
 
 ```
