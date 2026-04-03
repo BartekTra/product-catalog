@@ -11,7 +11,9 @@ import com.bartektra.product_catalog.model.ProductAttribute;
 import com.bartektra.product_catalog.repository.ProducerRepository;
 import com.bartektra.product_catalog.repository.ProductRepository;
 import com.bartektra.product_catalog.specification.ProductSpecification;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,9 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProducerRepository producerRepository;
+
+    @PersistenceContext
+    final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
@@ -60,7 +65,9 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findByIdWithDetails(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Product not found with id: " + id
+                ));
 
         Producer producer = findProducerOrThrow(request.getProducerId());
 
@@ -70,6 +77,8 @@ public class ProductService {
         product.setProducer(producer);
 
         product.getAttributes().clear();
+        entityManager.flush();
+
         setAttributes(product, request.getAttributes());
 
         return toResponse(productRepository.save(product));
