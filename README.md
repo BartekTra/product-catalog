@@ -347,6 +347,7 @@ To execute the test suite, run the following command in your terminal:
 
 ```bash
 ./mvnw test
+```
 
 ## Project Structure
 
